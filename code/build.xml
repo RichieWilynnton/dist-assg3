@@ -1,0 +1,18 @@
+<project name="simple-java" default="compile">
+
+    <property name="src" value="src"/>
+    <property name="build" value="bin"/>
+
+    <target name="compile">
+        <mkdir dir="${build}"/>
+
+        <javac destdir="${build}" includeantruntime="false">
+            <src path="${src}"/>
+        </javac>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}"/>
+    </target>
+
+</project>
