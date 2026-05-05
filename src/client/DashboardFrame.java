@@ -1,7 +1,5 @@
 package client;
 
-import dto.LogGameRequest;
-import dto.LogGameResponse;
 import dto.LogoutRequest;
 import dto.LogoutResponse;
 import java.awt.BorderLayout;
@@ -10,12 +8,12 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import server.AuthService;
 
 public class DashboardFrame extends JFrame {
     private static final String PROFILE_CARD = "profile";
+    private static final String PLAY_CARD = "play";
     private static final String LEADERBOARD_CARD = "leaderboard";
 
     private final Runnable onLogout;
@@ -90,24 +88,21 @@ public class DashboardFrame extends JFrame {
             return;
         }
 
+        if ("play".equals(actionCommand)) {
+            contentPanel.removeAll();
+            contentPanel.add(new PlayGamePanel(), PLAY_CARD);
+            cardLayout.show(contentPanel, PLAY_CARD);
+            contentPanel.revalidate();
+            contentPanel.repaint();
+            return;
+        }
+
         if ("leaderboard".equals(actionCommand)) {
             contentPanel.removeAll();
             contentPanel.add(new LeaderboardPanel(), LEADERBOARD_CARD);
             cardLayout.show(contentPanel, LEADERBOARD_CARD);
             contentPanel.revalidate();
             contentPanel.repaint();
-            return;
-        }
-
-        if ("play".equals(actionCommand)) {
-            try {
-                LogGameResponse response = ClientApp.userService.logGame(new LogGameRequest(ClientSession.username));
-                if (!response.success) {
-                    JOptionPane.showMessageDialog(this, "Failed to record game: " + response.message, "Play Game", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Failed to connect to server. " + e.getMessage(), "Play Game", JOptionPane.ERROR_MESSAGE);
-            }
             return;
         }
 

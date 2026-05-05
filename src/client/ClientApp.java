@@ -9,8 +9,10 @@ import server.UserService;
 public final class ClientApp {
     public static AuthService authService;
     public static UserService userService;
+    public static String serverHost;
 
     private ClientApp(String host) {
+        serverHost = host;
         try {
             Registry registry = LocateRegistry.getRegistry(host);
             authService = (AuthService) registry.lookup("AuthService");
