@@ -2,13 +2,25 @@
 
     <property name="src" value="src"/>
     <property name="build" value="bin"/>
+    <property name="lib" value="lib"/>
+    <property name="glassfish.home" value="/home/u3036094332/Downloads/glassfish5/glassfish"/>
+
+    <path id="classpath">
+        <fileset dir="${lib}" includes="*.jar"/>
+        <pathelement location="${glassfish.home}/lib/gf-client.jar"/>
+    </path>
 
     <target name="compile">
         <mkdir dir="${build}"/>
 
-        <javac destdir="${build}" includeantruntime="false">
+        <javac destdir="${build}" includeantruntime="false" classpathref="classpath">
             <src path="${src}"/>
         </javac>
+
+        <!-- Copy card images onto the classpath so they can be loaded as resources -->
+        <copy todir="${build}/cards">
+            <fileset dir="${lib}" includes="*.png"/>
+        </copy>
     </target>
 
     <target name="clean">

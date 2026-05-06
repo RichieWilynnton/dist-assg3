@@ -85,6 +85,92 @@ public class DatabaseService {
         stmt.executeUpdate();
     }
 
+    public void incrementNumWins(String username) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE users SET num_wins = num_wins + 1 WHERE username = ?");
+        stmt.setString(1, username);
+        stmt.executeUpdate();
+    }
+
+    public void updateAvgTimeToWin(String username, float elapsedSeconds) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE users SET avg_time_to_win = (avg_time_to_win * num_wins + ?) / (num_wins + 1)" +
+                " WHERE username = ?");
+        stmt.setFloat(1, elapsedSeconds);
+        stmt.setString(2, username);
+        stmt.executeUpdate();
+    }
+
+    public void recordGameResult(java.util.Set<String> players, String winner, float elapsedSeconds)
+            throws SQLException {
+        conn.setAutoCommit(false);
+        try {
+            PreparedStatement incGames = conn.prepareStatement(
+                    "UPDATE users SET num_games = num_games + 1 WHERE username = ?");
+            for (String player : players) {
+                incGames.setString(1, player);
+                incGames.addBatch();
+            }
+            incGames.executeBatch();
+
+            if (winner != null) {
+                PreparedStatement avgStmt = conn.prepareStatement(
+                        "UPDATE users SET avg_time_to_win = (avg_time_to_win * num_wins + ?) / (num_wins + 1)" +
+                        " WHERE username = ?");
+                avgStmt.setFloat(1, elapsedSeconds);
+                avgStmt.setString(2, winner);
+                avgStmt.executeUpdate();
+
+                PreparedStatement incWins = conn.prepareStatement(
+                        "UPDATE users SET num_wins = num_wins + 1 WHERE username = ?");
+                incWins.setString(1, winner);
+                incWins.executeUpdate();
+            }
+
+            PreparedStatement select = conn.prepareStatement(
+                    "SELECT username FROM users ORDER BY num_wins DESC, num_games ASC");
+            ResultSet rs = select.executeQuery();
+            java.util.List<String> ordered = new java.util.ArrayList<>();
+            while (rs.next()) {
+                ordered.add(rs.getString("username"));
+            }
+            PreparedStatement rankStmt = conn.prepareStatement(
+                    "UPDATE users SET leaderboard_rank = ? WHERE username = ?");
+            for (int i = 0; i < ordered.size(); i++) {
+                rankStmt.setInt(1, i + 1);
+                rankStmt.setString(2, ordered.get(i));
+                rankStmt.addBatch();
+            }
+            rankStmt.executeBatch();
+
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
+        }
+    }
+
+    public void updateLeaderboardRanks() throws SQLException {
+        PreparedStatement select = conn.prepareStatement(
+                "SELECT username FROM users ORDER BY num_wins DESC, num_games ASC");
+        ResultSet rs = select.executeQuery();
+        java.util.List<String> ordered = new java.util.ArrayList<>();
+        while (rs.next()) {
+            ordered.add(rs.getString("username"));
+        }
+
+        PreparedStatement update = conn.prepareStatement(
+                "UPDATE users SET leaderboard_rank = ? WHERE username = ?");
+        for (int i = 0; i < ordered.size(); i++) {
+            update.setInt(1, i + 1);
+            update.setString(2, ordered.get(i));
+            update.addBatch();
+        }
+        update.executeBatch();
+    }
+
     public java.util.List<UserInfoEntry> readLeaderboard() throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(
                 "SELECT username, password, num_games, num_wins, avg_time_to_win, leaderboard_rank" +
