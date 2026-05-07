@@ -3,11 +3,13 @@
     <property name="src" value="src"/>
     <property name="build" value="bin"/>
     <property name="lib" value="lib"/>
-    <property name="glassfish.home" value="/home/u3036094332/Downloads/glassfish5/glassfish"/>
+    <property name="glassfish.home" value="${env.GLASSFISH_HOME}"/>
+    <property name="mysql.connector" value="${env.MYSQL_CONNECTOR}"/>
 
     <path id="classpath">
         <fileset dir="${lib}" includes="*.jar"/>
         <pathelement location="${glassfish.home}/lib/gf-client.jar"/>
+        <pathelement location="${mysql.connector}"/>
     </path>
 
     <target name="compile">

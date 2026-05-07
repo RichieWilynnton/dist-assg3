@@ -83,17 +83,6 @@ public class JPokerGameServer implements AutoCloseable {
         createTopicProducer();
     }
 
-    public static void main(String[] args) {
-        String host = args.length > 0 ? args[0] : "localhost";
-
-        try (JPokerGameServer gameServer = new JPokerGameServer(host)) {
-            System.out.println("JPoker game server listening for lobby joins...");
-            gameServer.run();
-        } catch (Exception e) {
-            System.err.println("Failed to start JPoker game server: " + e.getMessage());
-        }
-    }
-
     public void run() throws JMSException {
         while (true) {
             Message message = consumer.receive();
@@ -234,6 +223,7 @@ public class JPokerGameServer implements AutoCloseable {
 
         String playerList = String.join(",", players);
         String cardList   = joinInts(cards);
+        // format: GAME_START:p1,p2,...|c1,c2,...
         publishToTopic(GAME_START_PREFIX + playerList + "|" + cardList);
 
         // Reset lobby immediately so a new one can open.
@@ -342,7 +332,6 @@ public class JPokerGameServer implements AutoCloseable {
             try {
                 consumer.close();
             } catch (JMSException ignored) {
-                // no-op
             }
         }
 
@@ -350,7 +339,6 @@ public class JPokerGameServer implements AutoCloseable {
             try {
                 session.close();
             } catch (JMSException ignored) {
-                // no-op
             }
         }
 
@@ -358,7 +346,6 @@ public class JPokerGameServer implements AutoCloseable {
             try {
                 connection.close();
             } catch (JMSException ignored) {
-                // no-op
             }
         }
     }
